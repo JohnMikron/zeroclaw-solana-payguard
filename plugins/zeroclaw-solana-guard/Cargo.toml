@@ -1,0 +1,23 @@
+[package]
+name = "zeroclaw-solana-guard"
+version = "0.1.0"
+edition = "2021"
+authors = ["JohnMikron <JohnMikron@users.noreply.github.com>"]
+description = "Solana Pay Invoice Verifier, Token-2022 Risk Inspector, Durable Nonce Verifier & Spend Firewall Plugin for ZeroClaw AI Agent Runtime"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bs58 = "0.5"
+thiserror = "1.0"
+solana-pubkey = "2.1"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+wit-bindgen = { version = "0.36.0", default-features = false, features = ["realloc"] }
+
+[dev-dependencies]
+tokio = { version = "1.38", features = ["macros", "rt-multi-thread"] }

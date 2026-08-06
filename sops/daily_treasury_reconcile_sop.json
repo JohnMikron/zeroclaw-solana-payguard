@@ -1,0 +1,28 @@
+{
+  "sop_id": "sop_daily_treasury_reconcile",
+  "name": "End-of-Day Store Treasury & Invoice Reconciliation",
+  "description": "Runs at 23:59 daily to aggregate sales, compute credit card fee savings, and generate merchant treasury summary report.",
+  "trigger": {
+    "type": "cron",
+    "schedule": "0 59 23 * * *"
+  },
+  "steps": [
+    {
+      "step_id": "query_daily_stats",
+      "action": "memory_query",
+      "query": "SELECT COUNT(*) as total_orders, COALESCE(SUM(expected_amount_usdc), 0.0) as total_usdc, (COALESCE(SUM(expected_amount_usdc), 0.0) * 0.035) as fee_savings FROM solana_orders WHERE status = 'PAID_AND_VERIFIED' AND created_timestamp >= strftime('%s', 'now', 'start of day')"
+    },
+    {
+      "step_id": "generate_report",
+      "action": "format_message",
+      "template": "📊 *Daily Sales Report - ZeroClaw Solana POS*\nTotal Invoices Paid: {{step.query_daily_stats.output.total_orders}}\nTotal Revenue: ${{step.query_daily_stats.output.total_usdc}} USDC\nEstimated Card Fee Savings (3.5%): ${{step.query_daily_stats.output.fee_savings}} USDC\nCustody Status: T1 Verified Fails-Closed Safe."
+    },
+    {
+      "step_id": "send_daily_summary",
+      "action": "send_channel_message",
+      "channel": "whatsapp",
+      "recipient": "+5511999998888",
+      "message": "{{step.generate_report.output}}"
+    }
+  ]
+}

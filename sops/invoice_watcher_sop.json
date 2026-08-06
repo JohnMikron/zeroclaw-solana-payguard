@@ -1,0 +1,49 @@
+{
+  "sop_id": "sop_solana_invoice_watcher",
+  "name": "Solana Pay Invoice On-Chain Verification Poller",
+  "description": "Polls Solana RPC every 30 seconds for active order reference keys, verifies signatures using WASM plugin, and updates order status.",
+  "trigger": {
+    "type": "cron",
+    "schedule": "*/30 * * * * *"
+  },
+  "steps": [
+    {
+      "step_id": "fetch_pending_invoices",
+      "action": "memory_query",
+      "query": "SELECT order_id, reference_key, expected_amount_usdc, recipient_address FROM solana_orders WHERE status = 'PENDING'"
+    },
+    {
+      "step_id": "rpc_poll_signatures",
+      "action": "http_request",
+      "url": "https://api.devnet.solana.com",
+      "method": "POST",
+      "headers": { "Content-Type": "application/json" },
+      "body_json": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getSignaturesForAddress",
+        "params": ["{{step.fetch_pending_invoices.output.reference_key}}", { "limit": 5 }]
+      }
+    },
+    {
+      "step_id": "verify_with_wasm_plugin",
+      "action": "plugin_call",
+      "plugin_name": "zeroclaw_solana_guard",
+      "tool_name": "solana_verify_invoice",
+      "arguments": {
+        "reference_key": "{{step.fetch_pending_invoices.output.reference_key}}",
+        "expected_recipient": "{{step.fetch_pending_invoices.output.recipient_address}}",
+        "expected_amount": "{{step.fetch_pending_invoices.output.expected_amount_usdc}}",
+        "signatures": "{{step.rpc_poll_signatures.output.result}}"
+      }
+    },
+    {
+      "step_id": "post_receipt_notification",
+      "action": "send_channel_message",
+      "condition": "step.verify_with_wasm_plugin.output.is_valid == true",
+      "channel": "whatsapp",
+      "recipient": "+5511999998888",
+      "message": "Invoice #{{step.fetch_pending_invoices.output.order_id}} paid ✓ ({{step.verify_with_wasm_plugin.output.amount_received}} USDC verified on Solana Devnet). Tx: {{step.verify_with_wasm_plugin.output.verified_signature}}"
+    }
+  ]
+}

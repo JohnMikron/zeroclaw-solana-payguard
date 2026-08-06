@@ -1,0 +1,28 @@
+# Rust / Cargo Build Artifacts
+/target/
+**/target/
+
+# WebAssembly Output
+*.wasm
+
+# Databases & Runtime State
+*.db
+*.sqlite
+*.sqlite3
+zeroclaw_memory.db
+
+# Secrets & Local Configurations
+config/secrets.json
+.env
+.env.local
+
+# Internal Operator Notes (Do NOT upload to public repo)
+docs/internal/
+*.log
+
+# Operating System & IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

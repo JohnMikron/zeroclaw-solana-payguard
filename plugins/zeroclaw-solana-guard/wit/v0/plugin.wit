@@ -1,0 +1,34 @@
+package zeroclaw:plugin@0.1.0;
+
+interface tool {
+    record tool-parameter {
+        name: string,
+        parameter-type: string,
+        description: string,
+        required: bool,
+    }
+
+    record tool-metadata {
+        name: string,
+        description: string,
+        parameters: list<tool-parameter>,
+    }
+
+    record tool-call-request {
+        tool-name: string,
+        arguments-json: string,
+    }
+
+    record tool-call-response {
+        success: bool,
+        output-json: string,
+        error-message: option<string>,
+    }
+
+    get-metadata: func() -> tool-metadata;
+    execute: func(request: tool-call-request) -> tool-call-response;
+}
+
+world zeroclaw-tool-plugin {
+    export tool;
+}

@@ -1,0 +1,41 @@
+{
+  "sop_id": "sop_refund_approval_gate",
+  "name": "Human Approval Gate for Customer Refunds & Payouts",
+  "description": "Enforces human approval checkpoint whenever a refund or outbound transfer is initiated, preventing prompt-injection vulnerability exploitation.",
+  "trigger": {
+    "type": "channel_intent",
+    "intents": ["refund_request", "payout_request", "treasury_transfer"]
+  },
+  "steps": [
+    {
+      "step_id": "evaluate_firewall_rules",
+      "action": "plugin_call",
+      "plugin_name": "zeroclaw_solana_guard",
+      "tool_name": "solana_spend_firewall",
+      "arguments": {
+        "recipient_address": "{{intent.arguments.destination_address}}",
+        "amount_usdc": "{{intent.arguments.amount_usdc}}",
+        "token_mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "current_daily_spent_usdc": "{{memory.daily_spent_usdc}}",
+        "max_daily_limit_usdc": 500.0,
+        "allowed_recipients": ["4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"],
+        "allowed_mints": ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
+        "requester_role": "{{channel.sender_role}}"
+      }
+    },
+    {
+      "step_id": "store_owner_approval_checkpoint",
+      "action": "human_approval_checkpoint",
+      "approver_role": "store_owner",
+      "channel": "telegram",
+      "recipient": "@merchant_owner_group",
+      "prompt_message": "⚠️ *APPROVAL REQUIRED*: Refund Request for {{intent.arguments.amount_usdc}} USDC to address `{{intent.arguments.destination_address}}`.\nReason: {{step.evaluate_firewall_rules.output.reason}}\nDo you approve this transfer? Reply /approve or /deny."
+    },
+    {
+      "step_id": "execute_payout_if_approved",
+      "action": "solana_transaction_submit",
+      "condition": "step.store_owner_approval_checkpoint.approved == true",
+      "unsigned_tx": "{{intent.arguments.unsigned_tx}}"
+    }
+  ]
+}
