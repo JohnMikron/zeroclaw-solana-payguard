@@ -66,8 +66,9 @@ It solves a real-world merchant problem: enabling family shops, e-commerce store
 │   ├── refund_approval_sop.json           # Human Approval Checkpoint SOP
 │   └── daily_treasury_reconcile_sop.json  # End-of-Day Reconciliation SOP
 ├── scripts/
-│   ├── simulate_merchant_flow.py          # Full POS Lifecycle E2E Simulator
-│   └── test_prompt_injection.py           # Prompt Injection Attack Test Suite
+│   ├── simulate_merchant_flow.py          # Full POS Lifecycle E2E Devnet Runner
+│   ├── test_prompt_injection.py           # Prompt Injection Attack Security Audit
+│   └── run_telegram_bot_agent.py          # Live Telegram Bot Channel Daemon
 └── docs/
     ├── THREAT_MODEL_AND_CUSTODY.md        # Custody Tier Audit & Threat Matrix
     ├── SUPERTEAM_SHOWCASE_WRITEUP.md      # Submission & Showcase Writeup
