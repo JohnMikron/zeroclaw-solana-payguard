@@ -120,14 +120,10 @@ cargo run --release --features plugins-wasm-cranelift -- --config config/config.
 
 ---
 
-## 🏆 Superteam Brasil Bounty Submission Details
+## 📚 Documentation & Audit Reports
 
-- **Sponsor**: Superteam Brasil
-- **Target Event**: ZeroClaw Solana Bounty ($5,000 USDG)
-- **Developer / Team**: JohnMikron (`@JohnMikron`)
-- **Repository**: [JohnMikron/zeroclaw-solana-payguard](https://github.com/JohnMikron/zeroclaw-solana-payguard)
-- **Discord Showcase Post**: See [`docs/SUPERTEAM_SHOWCASE_WRITEUP.md`](docs/SUPERTEAM_SHOWCASE_WRITEUP.md)
-- **Threat Model**: See [`docs/THREAT_MODEL_AND_CUSTODY.md`](docs/THREAT_MODEL_AND_CUSTODY.md)
+- **Showcase & Operator Writeup**: See [`docs/SUPERTEAM_SHOWCASE_WRITEUP.md`](docs/SUPERTEAM_SHOWCASE_WRITEUP.md)
+- **Threat Model & Security Audit**: See [`docs/THREAT_MODEL_AND_CUSTODY.md`](docs/THREAT_MODEL_AND_CUSTODY.md)
 
 ---
 
