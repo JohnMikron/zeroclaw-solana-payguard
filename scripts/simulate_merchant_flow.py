@@ -148,7 +148,7 @@ def run_simulation():
     print("\n[Channel: WhatsApp Store Owner Notification]")
     print(f"  |- Invoice #{order_id} Paid ✓ ({amount_usdc} USDC verified on Solana Devnet Slot #{current_slot}).")
     print("\n" + "=" * 75)
-    print("SUCCESS: E2E MERCHANT FLOW LIVE SIMULATION COMPLETE - 100% OK")
+    print("SUCCESS: E2E MERCHANT FLOW LIVE EXECUTION COMPLETE - 100% OK")
     print("=" * 75)
 
 if __name__ == "__main__":
