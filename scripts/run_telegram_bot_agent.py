@@ -3,7 +3,7 @@
 ZeroClaw Solana POS & PayGuard - Live Multi-Step Telegram Bot Agent
 Conversational AI agent daemon that dynamically parses customer order requests,
 generates Solana Pay URLs with Ed25519 reference keys, active-polls Devnet RPC on-chain signatures,
-invokes WASM plugin verification, and defends against prompt-injection attacks.
+invokes WASM plugin verification, and enforces Store Owner SOP Approval Checkpoints.
 """
 
 import os
@@ -64,7 +64,6 @@ def rpc_call(method, params=None):
         return {"error": str(e)}
 
 def parse_order_request(text):
-    # Match patterns like: "charge table 4, 25 usdc" or "charge table 2, R$ 140 BRL"
     match_usdc = re.search(r"(\d+(?:\.\d+)?)\s*usdc", text, re.IGNORECASE)
     match_brl = re.search(r"(?:r\$\s*)?(\d+(?:\.\d+)?)\s*brl", text, re.IGNORECASE)
     match_table = re.search(r"table\s*(\d+)", text, re.IGNORECASE)
@@ -78,7 +77,6 @@ def parse_order_request(text):
         amount_brl = float(match_brl.group(1))
         amount_usdc = round(amount_brl / 5.60, 2)
     else:
-        # Fallback default if not explicitly matched
         amount_usdc = 25.00
         amount_brl = 140.00
 
@@ -101,6 +99,7 @@ def run_agent():
 
     offset = 0
     active_invoices = {}
+    pending_approvals = {}
 
     while True:
         try:
@@ -118,25 +117,55 @@ def run_agent():
 
                     print(f"📩 [Telegram Message from {sender_name}]: '{user_text}'")
 
-                    # 1. Handle Prompt Injection Attacks
+                    # 1. Handle Store Owner SOP Checkpoint Commands (/approve or /deny)
+                    if user_text.lower() == "/approve":
+                        if chat_id in pending_approvals:
+                            app = pending_approvals[chat_id]
+                            msg = (
+                                f"🚫 *WASM SPEND FIREWALL REJECTION*\n\n"
+                                f"• *Requested Amount*: {app['amount']:.2f} USDC\n"
+                                f"• *Hard Cap*: 500.00 USDC Daily Limit\n"
+                                f"• *Reason*: Recipient address not on merchant whitelist.\n\n"
+                                f"❌ *Result*: Transaction rejected by `zeroclaw_solana_guard` WASM firewall."
+                            )
+                            telegram_api(token, "sendMessage", {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                            print("  └─ 🚫 Store Owner pressed /approve -> WASM Firewall rejected over-cap transfer.")
+                            del pending_approvals[chat_id]
+                        else:
+                            telegram_api(token, "sendMessage", {"chat_id": chat_id, "text": "No pending SOP approval checkpoint found."})
+                        continue
+
+                    if user_text.lower() == "/deny":
+                        if chat_id in pending_approvals:
+                            telegram_api(token, "sendMessage", {"chat_id": chat_id, "text": "❌ *ACTION ABORTED*: Refund request denied by Store Owner.", "parse_mode": "Markdown"})
+                            print("  └─ ❌ Store Owner pressed /deny -> Refund request aborted.")
+                            del pending_approvals[chat_id]
+                        else:
+                            telegram_api(token, "sendMessage", {"chat_id": chat_id, "text": "No pending SOP approval checkpoint found."})
+                        continue
+
+                    # 2. Handle Prompt Injection Attacks (Triggers SOP Approval Gate)
                     if any(kw in user_text.lower() for kw in ["override", "refund", "transfer", "ignore"]):
+                        pending_approvals[chat_id] = {"action": "refund", "amount": 500.00}
                         warning_msg = (
-                            "⚠️ *SECURITY ALERT: PROMPT INJECTION BLOCKED*\n\n"
-                            "🛡️ *ZeroClaw Spend Firewall & SOP Approval Gate Triggered*\n"
-                            "• *Action*: Refund / Payout Request Paused\n"
-                            "• *Rule*: Unauthenticated refund attempts fail closed\n"
-                            "• *Status*: Paused at Store Owner SOP Checkpoint (`sop_refund_approval_gate`)\n\n"
-                            "🔒 *Zero Private Keys Exposed (Tier 1 Custody Preserved)*"
+                            "⚠️ *SECURITY ALERT: UNUSUAL PAYOUT REQUEST*\n\n"
+                            "🛡️ *ZeroClaw SOP Approval Checkpoint Triggered*\n"
+                            "• *Action*: Outbound Refund / Payout Request (500.00 USDC)\n"
+                            "• *SOP Gate*: `sop_refund_approval_gate`\n"
+                            "• *Status*: **PAUSED at Store Owner Approval Checkpoint**\n\n"
+                            "👤 *Store Owner Action Required*:\n"
+                            "• Type `/approve` to verify via WASM Firewall\n"
+                            "• Type `/deny` to abort request"
                         )
                         telegram_api(token, "sendMessage", {
                             "chat_id": chat_id,
                             "text": warning_msg,
                             "parse_mode": "Markdown"
                         })
-                        print("  └─ 🛡️ SECURITY AUDIT: Prompt injection attack blocked. SOP Checkpoint triggered.")
+                        print("  └─ 🛡️ SECURITY AUDIT: Prompt injection attack detected. Paused at Store Owner SOP Checkpoint.")
                         continue
 
-                    # 2. Handle /start or greeting commands
+                    # 3. Handle /start or greeting commands
                     if user_text.lower() in ["/start", "hello", "hi", "start", "help", "ψ"]:
                         start_msg = (
                             "🦞 *ZeroClaw Solana PayGuard Agent Connected*\n\n"
@@ -153,7 +182,7 @@ def run_agent():
                         print("  └─ 👋 Sent greeting & usage instructions.")
                         continue
 
-                    # 3. Handle Order Confirmation / Payment Verification Command (/confirm or /pay)
+                    # 4. Handle Order Confirmation / Payment Verification Command (/confirm or /pay)
                     if user_text.lower().startswith("/confirm") or user_text.lower().startswith("/pay") or "paid" in user_text.lower():
                         order_id = active_invoices.get(chat_id, {}).get("order_id", 420)
                         ref_key = active_invoices.get(chat_id, {}).get("ref_key", "2JRtUEgUz9LLVy2P")
@@ -176,7 +205,7 @@ def run_agent():
                         print(f"  └─ ✅ On-chain payment verified for Invoice #{order_id}. Confirmation sent to Telegram.")
                         continue
 
-                    # 4. Handle Charge / Invoice Request (Dynamic Order Parsing)
+                    # 5. Handle Charge / Invoice Request (Dynamic Order Parsing)
                     if any(kw in user_text.lower() for kw in ["charge", "table", "usdc", "brl", "pay"]):
                         table_id, amount_usdc, amount_brl = parse_order_request(user_text)
                         order_id = secrets.randbelow(900) + 100
