@@ -60,15 +60,3 @@ python scripts/test_prompt_injection.py
 # 3. Start ZeroClaw Runtime Host
 cargo run --release --features plugins-wasm-cranelift -- --config config/config.toml
 ```
-
----
-
-## 5. Submissions Checklist
-
-- [x] Working Use-Case on Real Channel (WhatsApp / Telegram / Webhook)
-- [x] 3-Minute Video Demo (Phone + Terminal)
-- [x] Complete Codebase & Rust WASM Plugin (`wit/v0`) with 8/8 Unit Tests Passing
-- [x] Durable Nonce Protection & Switchboard REST Fallback
-- [x] Custody Tier Declaration & Threat Model Audit
-- [x] Reproducibility Guide (< 15 mins)
-- [x] Build-in-Public Log Posts on X
