@@ -3,7 +3,7 @@
 **Bounty**: Build Solana-native plugins for ZeroClaw by Superteam Brasil  
 **Developer / Team**: JohnMikron (`@JohnMikron`)  
 **Repository**: `https://github.com/JohnMikron/zeroclaw-solana-payguard`  
-**Video Demo (3 min Google Drive Link)**: `https://drive.google.com/file/d/YOUR_GOOGLE_DRIVE_VIDEO_ID/view?usp=sharing`  
+**Video Demo (3 min Google Drive Link)**: `https://drive.google.com/file/d/197hNWaAMtHKROLs50dmPrirfZvqCXcb8/view?usp=sharing`  
 **Custody Tier**: T1 (Build & Verify / Zero Key Access) + T2 Bounded SOP Approval Gate  
 
 ---
