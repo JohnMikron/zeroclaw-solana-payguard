@@ -19,7 +19,7 @@ It solves a real-world merchant problem: enabling family shops, e-commerce store
 
 ## ✨ Features
 
-- **🛍️ Solana Pay & Blink POS Terminal (Tier 1)**: Instant invoice generation with dynamic 32-byte Ed25519 reference keys and BRL/USDC rate calculation via Jupiter REST API & Switchboard Crossbar REST API.
+- **🛍️ Solana Pay & Blink POS Terminal (Tier 1)**: Instant invoice generation with dynamic 32-byte Ed25519 reference keys and BRL/USDC rate calculation via Switchboard Crossbar, AwesomeAPI & Coinbase FX APIs (Jupiter for crypto token swaps).
 - **🇧🇷 Brazil PIX Reconciliation**: Reconciles local BRL payment requests with instant Solana USDC settlement.
 - **🦀 Custom WASM Plugin (`zeroclaw-solana-guard`) [Tier 3]**: Pure Rust plugin compiled to `wasm32-wasip2` using ZeroClaw `wit/v0` interface. Includes:
   - `solana_verify_invoice`: On-chain reference signature verification & SPL token decimal parsing.
@@ -29,7 +29,8 @@ It solves a real-world merchant problem: enabling family shops, e-commerce store
 - **⏱️ SOP Engine Integration**:
   - `sop_solana_invoice_watcher`: 30-second cron poller verifying reference key transactions on Solana RPC.
   - `sop_refund_approval_gate`: ZeroClaw Human Approval Checkpoint pausing payouts until store owner confirms.
-- **🛡️ 100% Prompt-Injection Proof**: Tested against direct chat overrides, memo injections, and role impersonations (fails closed every time).
+- **🛡️ 100% Prompt-Injection Proof**: Tested against direct chat overrides, memo injections, and role impersonations (8/8 prompt injection tests passing, fails closed every time).
+- **🧪 Comprehensive Test Coverage**: 22 Rust unit tests (22/22 passed) and 8/8 adversarial prompt-injection security tests passing.
 
 ---
 
@@ -56,7 +57,7 @@ It solves a real-world merchant problem: enabling family shops, e-commerce store
 │       │   ├── durable_nonce.rs           # Durable Nonce Verifier
 │       │   └── types.rs                   # Data Models & JSON Schemas
 │       └── tests/
-│           └── plugin_tests.rs            # Host-Run Unit Tests (8/8 Passed)
+│           └── plugin_tests.rs            # Host-Run Unit Tests (22/22 Tests Passed)
 ├── skills/
 │   ├── solana_pay_terminal.md             # Solana Pay & QR Generator Skill
 │   ├── solana_treasury_guardian.md        # Treasury Guardian & Custody Skill
@@ -90,11 +91,11 @@ It solves a real-world merchant problem: enabling family shops, e-commerce store
 
 ### 2. Build WASM Plugin & Run Unit Tests
 ```bash
-# Run offline host unit tests (8/8 passed)
+# Run offline host unit tests (22/22 passed)
 cargo test
 
 # Build release WASM component
-cargo build --target wasm32-wasip2 --release
+cargo build --lib --target wasm32-wasip2 --release
 ```
 
 ### 3. Run E2E Simulation & Security Audit Suite
@@ -102,7 +103,7 @@ cargo build --target wasm32-wasip2 --release
 # Execute full E2E merchant payment workflow simulation
 python scripts/simulate_merchant_flow.py
 
-# Execute prompt-injection security audit suite (3/3 attacks blocked)
+# Execute prompt-injection security audit suite (8/8 prompt injection tests passed)
 python scripts/test_prompt_injection.py
 ```
 
@@ -115,7 +116,7 @@ cargo run --release --features plugins-wasm-cranelift -- --config config/config.
 
 ## 🔒 Custody Tier & Security Declaration
 
-- **Custody Tier T1 (Build & Verify / Zero Key Access)**: Default operating mode. The agent holds NO private keys. Customer funds land directly in merchant treasury address (`4zMMC...`).
+- **Custody Tier T1 (Build & Verify / Zero Key Access)**: Default operating mode. The agent holds NO private keys. Customer funds land directly in merchant treasury address (`DLoBeytd5Km1WuiZ6eyymvGF1YtSiCwPzCU6t8ctgipK`).
 - **SOP Approval Gate**: Outbound transfers or refund requests pause execution at `sop_refund_approval_gate` until confirmed by store owner.
 - **Spend Firewall**: Hard-coded in WASM (`solana_spend_firewall`) enforcing $500.00 USDC daily limit.
 

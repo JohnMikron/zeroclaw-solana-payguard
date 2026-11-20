@@ -37,7 +37,7 @@ Designed for real-world merchants in Brazil and worldwide running family shops, 
 
 ## 3. Custody Tier & Security Threat Model
 
-- **Custody Tier T1 (Default)**: Agent holds ZERO private keys. Payments go directly to merchant treasury key (`4zMMC...`).
+- **Custody Tier T1 (Default)**: Agent holds ZERO private keys. Payments go directly to merchant treasury key (`DLoBeytd5Km1WuiZ6eyymvGF1YtSiCwPzCU6t8ctgipK`).
 - **Spend Firewall**: Hard-coded WASM Rust code enforces $500.00 USDC daily cap and recipient address whitelist.
 - **Prompt-Injection Defense Transcript**: Tested against direct chat overrides, memo injections, and role impersonations. 100% fail-closed rate verified (see `docs/THREAT_MODEL_AND_CUSTODY.md`).
 

@@ -37,15 +37,25 @@ pub struct InvoiceVerificationResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Token2022RiskRequest {
     pub mint_address: String,
+    #[serde(default)]
     pub raw_account_data_base64: Option<String>,
+    #[serde(default)]
     pub has_transfer_fee: bool,
+    #[serde(default)]
     pub transfer_fee_basis_points: u16,
+    #[serde(default)]
     pub maximum_fee: u64,
+    #[serde(default)]
     pub has_transfer_hook: bool,
+    #[serde(default)]
     pub transfer_hook_program_id: Option<String>,
+    #[serde(default)]
     pub has_permanent_delegate: bool,
+    #[serde(default)]
     pub permanent_delegate_address: Option<String>,
+    #[serde(default)]
     pub is_non_transferable: bool,
+    #[serde(default)]
     pub has_confidential_transfers: bool,
 }
 
@@ -78,6 +88,7 @@ pub struct SpendFirewallRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpendFirewallResponse {
     pub approved: bool,
+    pub hard_blocked: bool,
     pub reason: String,
     pub remaining_daily_quota_usdc: f64,
     pub requires_human_approval: bool,
@@ -90,6 +101,10 @@ pub struct DurableNonceRequest {
     pub nonce_account_pubkey: String,
     pub nonce_authority: String,
     pub is_advance_nonce_first_instruction: bool,
+    #[serde(default)]
+    pub transaction_rpc_json: Option<String>,
+    #[serde(default)]
+    pub raw_nonce_account_data_base64: Option<String>,
 }
 
 /// Response returned from Durable Nonce verification.

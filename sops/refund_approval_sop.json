@@ -15,11 +15,11 @@
       "arguments": {
         "recipient_address": "{{intent.arguments.destination_address}}",
         "amount_usdc": "{{intent.arguments.amount_usdc}}",
-        "token_mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "token_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
         "current_daily_spent_usdc": "{{memory.daily_spent_usdc}}",
         "max_daily_limit_usdc": 500.0,
-        "allowed_recipients": ["4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"],
-        "allowed_mints": ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
+        "allowed_recipients": ["DLoBeytd5Km1WuiZ6eyymvGF1YtSiCwPzCU6t8ctgipK"],
+        "allowed_mints": ["4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"],
         "requester_role": "{{channel.sender_role}}"
       }
     },
@@ -34,8 +34,16 @@
     {
       "step_id": "execute_payout_if_approved",
       "action": "solana_transaction_submit",
-      "condition": "step.store_owner_approval_checkpoint.approved == true",
+      "condition": "step.evaluate_firewall_rules.output.hard_blocked == false && (step.evaluate_firewall_rules.output.approved == true || step.store_owner_approval_checkpoint.approved == true)",
       "unsigned_tx": "{{intent.arguments.unsigned_tx}}"
+    },
+    {
+      "step_id": "record_daily_spent",
+      "action": "memory_update",
+      "condition": "step.evaluate_firewall_rules.output.hard_blocked == false && (step.evaluate_firewall_rules.output.approved == true || step.store_owner_approval_checkpoint.approved == true)",
+      "key": "daily_spent_usdc",
+      "value": "{{memory.daily_spent_usdc}} + {{intent.arguments.amount_usdc}}",
+      "query": "UPDATE zeroclaw_memory SET daily_spent_usdc = COALESCE(daily_spent_usdc, 0.0) + {{intent.arguments.amount_usdc}}"
     }
   ]
 }

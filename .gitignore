@@ -26,3 +26,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Python Artifacts
+__pycache__/
+*.py[cod]
+*.class

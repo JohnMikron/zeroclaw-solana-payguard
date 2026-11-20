@@ -26,16 +26,46 @@
       }
     },
     {
+      "step_id": "rpc_get_transaction",
+      "action": "http_request",
+      "condition": "step.rpc_poll_signatures.output.result.length > 0",
+      "url": "https://api.devnet.solana.com",
+      "method": "POST",
+      "headers": { "Content-Type": "application/json" },
+      "body_json": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getTransaction",
+        "params": [
+          "{{step.rpc_poll_signatures.output.result[0].signature}}",
+          {
+            "encoding": "jsonParsed",
+            "commitment": "confirmed",
+            "maxSupportedTransactionVersion": 0
+          }
+        ]
+      }
+    },
+    {
       "step_id": "verify_with_wasm_plugin",
       "action": "plugin_call",
+      "condition": "step.rpc_poll_signatures.output.result.length > 0",
       "plugin_name": "zeroclaw_solana_guard",
       "tool_name": "solana_verify_invoice",
       "arguments": {
         "reference_key": "{{step.fetch_pending_invoices.output.reference_key}}",
         "expected_recipient": "{{step.fetch_pending_invoices.output.recipient_address}}",
         "expected_amount": "{{step.fetch_pending_invoices.output.expected_amount_usdc}}",
-        "signatures": "{{step.rpc_poll_signatures.output.result}}"
+        "expected_spl_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "signatures": ["{{step.rpc_poll_signatures.output.result[0].signature}}"],
+        "transaction_rpc_json": "{{step.rpc_get_transaction.output.result}}"
       }
+    },
+    {
+      "step_id": "update_order_status",
+      "action": "memory_query",
+      "condition": "step.verify_with_wasm_plugin.output.is_valid == true",
+      "query": "UPDATE solana_orders SET status = 'PAID_AND_VERIFIED', signature = '{{step.verify_with_wasm_plugin.output.verified_signature}}' WHERE order_id = {{step.fetch_pending_invoices.output.order_id}}"
     },
     {
       "step_id": "post_receipt_notification",
